@@ -1,4 +1,4 @@
-function [Xk,XkTag,weights,states] = SMCPHD_RBF_adaptivebirth(Zset,parameters,models,RBFnet)
+function [Xk,XkTag,weights,states] = SMCPHD_RBF_adaptivebirth(Zset,parameters,models,RBFnet,informed_priors)
 %SMCPHD_RBF_adaptivebirth is a function that tracks dolphin whistle
 %contours with the SMC-PHD filter. The details are given in our
 %publication:
@@ -264,8 +264,7 @@ else %There are measurements available  at present time step
     %persistent target (so measurement not assiciated to Estimated States)
     
     zbirth = Zk(:,~ismember(1:mk,xz)); %measurements that can give birth to new targets
-    nzb = numel(zbirth); %number of measurements creating Nb newborn particles
-    
+    nzb = numel(zbirth); %number of measurements creating Nb newborn particles 
     %pre-allocate
     xk_b =zeros(2,Nb*nzb);
      w_birth =zeros(1,Nb*nzb);
@@ -274,7 +273,12 @@ else %There are measurements available  at present time step
     %draw particle states
     for j=1:nzb
         xk_b(1,indncs:indncst)=  drawbirth(zbirth(:,j),R,Nb);
-        xk_b(2,indncs:indncst)= random(gmm_all,Nb);
+        switch (informed_priors)
+            case 1
+                xk_b(2,indncs:indncst)= random(gmm_all,Nb);
+            case 0
+                xk_b(2,indncs:indncst)= 0;
+        end
         %to use adaptive target birth magnitude:
         v=birthpdf(1,:)-zbirth(:,j);
         [~,l]=min(abs(v));%index of the frequency that is closest to the measurement
@@ -293,7 +297,8 @@ else %There are measurements available  at present time step
     weights{k}=[wk,w_birth];
     states{k}=[xk,xk_b];
     Tags{k}=[Tagk,T_birth];
-  else %there are no persisten particles, just initiate birth
+  
+    else %there are no persisten particles, just initiate birth
             %% //////////////////////  Target Birth ////////////////////////////////
             %Draw Nb newborn particles for each measurement 
             zbirth = Zk; %measurements that can give birth to new targets
@@ -307,8 +312,12 @@ else %There are measurements available  at present time step
             %draw particle states
             for j=1:nzb
                 xk_b(1,indncs:indncst)=  drawbirth(zbirth(:,j),R,Nb);
-                xk_b(2,indncs:indncst)= random(gmm_all,Nb);
-                %to use adaptive target birth magnitude (like in GMPHD):
+                switch (informed_priors)
+                            case 1
+                                xk_b(2,indncs:indncst)= random(gmm_all,Nb);
+                            case 0
+                                xk_b(2,indncs:indncst)= 0;
+                        end                %to use adaptive target birth magnitude (like in GMPHD):
                 v=birthpdf(1,:)-zbirth(:,j);
                 [~,l]=min(abs(v));%index of the frequency that is closest to the measurement
                 val=birthpdf(2,l);

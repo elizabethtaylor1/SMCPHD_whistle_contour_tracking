@@ -10,3 +10,8 @@ This package provides an implementation of the Sequential Monte Carlo Probabilit
 
 See reference paper: Gruden, P. and White, P. (2020) Automated extraction of dolphin whistles - a Sequential Monte Carlo Probability Hypothesis Density (SMC-PHD) approach; Accepted for publication in the Journal of the Acoustical Society of America (28 September 2020).
 
+Steps:
+1. Train RBF network (RBF_netork_training folder). Run prepare input/output first, then RBFnet_TrainTest_v2.
+2. Develop GMM (build_gmm.m)
+3. Run train_parameters to get birthpdf.m, requires picking to have informed or not informed priors
+4. Run SMCPHD (Run_SMCPHD.m).
